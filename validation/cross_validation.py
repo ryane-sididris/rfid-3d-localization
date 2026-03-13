@@ -35,10 +35,10 @@ def cross_validate(X, y, train_fn, predict_fn, eval_fn, aggregate_fn, k=5, rando
         folds_results.append(fold_result)
         summary_result = aggregate_fn(folds_results)
         
-        return {
-            "folds": folds_results,
-            "summary": summary_result
-        }
+    return {
+        "folds": folds_results,
+        "summary": summary_result
+    }
     
 
 # examples :
