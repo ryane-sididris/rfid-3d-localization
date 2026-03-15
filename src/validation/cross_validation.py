@@ -10,7 +10,7 @@ def cross_validate(X, y, train_fn, predict_fn, eval_fn, aggregate_fn, k=5, rando
         y: Target values
         train_fn: Function to train a model ((X_train, y_train) -> model)
         predict_fn: Function to make predictions ((model, X_test) -> y_pred))
-        eval_fn: Function to evaluate predictions ((y_test, y_pred) -> dict[str, float])
+        eval_fn: Function to evaluate predictions ((y_test, y_pred, test_index) -> dict[str, float])
         aggregate_fn: Function to aggregate fold results into summary statistics
             ((List[Dict[str, float]]) -> Dict[str, Dict[str, float]])
         k: Number of folds
@@ -31,7 +31,7 @@ def cross_validate(X, y, train_fn, predict_fn, eval_fn, aggregate_fn, k=5, rando
         model = train_fn(X_train, y_train)
         y_pred = predict_fn(model, X_test)
 
-        fold_result = eval_fn(y_test, y_pred)
+        fold_result = eval_fn(y_test, y_pred, test_index) # Passes test_index to allow eval_fn to access other data
         folds_results.append(fold_result)
         summary_result = aggregate_fn(folds_results)
         

@@ -4,17 +4,19 @@ import numpy as np
 
 def mae_3d(errs: np.ndarray) -> float:
     """
-    Calculate the 3D Mean Absolute Error (MAE) between true and predicted positions.
+    Calculate the Mean Absolute Error (MAE) from an array of errors.
 
-    The 3D MAE is the average Euclidean distance between each pair of true and predicted
-    3D coordinates. It represents the average positioning error in 3D space.
+    This function works for:
+    - distance errors between predicted and true antenna distances
+    - Euclidean position errors in 3D space
 
-    Args :
-        errs: Euclidean distance errors for each sample
-    Returns :
-        Mean Euclidean distance between predicted and true 3D positions.
+    Args:
+        errs: Array of errors (absolute distance errors or Euclidean errors)
+
+    Returns:
+        Mean error.
     """
-    return np.mean(errs)
+    return float(np.mean(errs))
 
 def rmse_3d(errs: np.ndarray) -> float:
     """Calculate the 3D Root Mean Squared Error (RMSE) between true and predicted positions.
@@ -41,3 +43,4 @@ def threshold_accuracy(errs: np.ndarray, threshold: float) -> float:
 
 # print(f"  % ≤ {threshold}m : {threshold_accuracy(errs, threshold):.1f}%")
 # ex: "% ≤ 1.0m : 49.3%"
+
