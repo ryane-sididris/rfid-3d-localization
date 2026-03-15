@@ -1,0 +1,72 @@
+
+DIRECT APPROACH WITH EXTRATREES
+
+=== extratrees - ds_elemen.csv ===
+Params : n_estimators=100, random_state=42, n_jobs=-1
+             mean       std
+rmse     2.030851  0.006350
+acc_1m  28.197681  0.248010
+acc_2m  72.772389  0.226042
+acc_3m  89.271134  0.056222
+
+=== extratrees - ds_Tx_Rx.csv ===
+Params : n_estimators=100, random_state=42, n_jobs=-1
+             mean       std
+rmse     1.245946  0.016503
+acc_1m  49.625760  1.133499
+acc_2m  93.017491  0.273072
+acc_3m  98.911847  0.169426
+
+=== extratrees - ds_Tx.csv ===
+Params : n_estimators=100, random_state=42, n_jobs=-1
+             mean       std
+rmse     1.249071  0.018815
+acc_1m  49.127331  1.550117
+acc_2m  92.813486  0.570996
+acc_3m  98.889146  0.166598
+
+=== extratrees - ds_advanced_17Feb26.csv ===
+Params : n_estimators=200, random_state=42, n_jobs=-1
+             mean       std
+rmse     1.255123  0.021584
+acc_1m  48.832264  1.118772
+acc_2m  92.790708  0.397404
+acc_3m  98.843820  0.219734
+
+Conclusions: 
+
+Best RMSE avg (m) and acc@1m acc@2m acc@3m with the ds_Tx_Rx dataset
+
+but the ds_Tx and ds_advanced_17Feb26 datasets also had very similar scores.
+
+
+
+
+TRILATERATION APPROACH WITH ESTRATREES
+
+=== extratrees distances trilateration - ds_advanced_17Feb26.csv ===
+Params : n_estimators=200, random_state=42, n_jobs=-1
+               mean       std
+dist_mae   0.541735  0.006322
+rmse       1.310426  0.025021
+acc_1m    45.726689  1.223696
+acc_2m    91.997442  0.497033
+acc_3m    98.662491  0.331448
+
+=== extratrees distances trilateration - ds_Tx_Rx.csv ===
+Params : n_estimators=200, random_state=42, n_jobs=-1
+               mean       std
+dist_mae   0.534876  0.004286
+rmse       1.286785  0.020748
+acc_1m    47.132097  1.206238
+acc_2m    91.974587  0.651176
+acc_3m    98.843846  0.252258
+
+=== extratrees distances trilateration - ds_Tx.csv ===
+Params : n_estimators=200, random_state=42, n_jobs=-1
+               mean       std
+dist_mae   0.534759  0.005012
+rmse       1.285732  0.016590
+acc_1m    47.449480  0.951480
+acc_2m    91.679828  0.761566
+acc_3m    98.821170  0.369679
