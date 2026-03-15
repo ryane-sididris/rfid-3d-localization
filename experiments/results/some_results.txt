@@ -70,3 +70,31 @@ rmse       1.285732  0.016590
 acc_1m    47.449480  0.951480
 acc_2m    91.679828  0.761566
 acc_3m    98.821170  0.369679
+
+
+ds_Tx et ds_Tx_Rx pratiquement à égalité
+
+
+---
+
+conclusions : l'approche par full trilatération n'améliore par les résultats
+
+
+---
+
+autres tests issus de notebook, avec validation simple
+
+Approche                                              MAE    Med   RMSE  ≤0.5m    ≤1m    ≤2m
+-----------------------------------------------------------------------------------------------
+ExtraTrees MultiOutput                              1.132  1.006  1.308  11.3%  49.3%  91.4%
+RandomForest MultiOutput                            1.166  1.024  1.347   9.6%  48.1%  90.6%
+ExtraTrees par axe (indépendants)                   1.132  1.006  1.308  11.3%  49.3%  91.4%
+RegressorChain ExtraTrees (x→y→z)                   1.153  1.022  1.332  11.1%  48.7%  90.8%
+XGBoost MultiOutput                                 1.161  1.041  1.350  10.5%  47.6%  90.5%
+Full multilatération (RF distances)                 2.860  3.006  3.366   4.6%  21.7%  42.5%
+Hybride multil. x/y + direct z (ExtraTrees)         1.216  1.034  1.432  11.7%  47.2%  87.8%
+Hybride multil. x/y + direct z (RandomForest)       1.221  1.051  1.437  11.6%  46.3%  87.5%
+Hybride multil. x/y + direct z (XGBoost)            1.236  1.063  1.458  12.2%  46.1%  86.3%
+
+résultats sigificativement moins bons qu'avec cross_validation
+prédiction direct avec extratrees reste meilleur
