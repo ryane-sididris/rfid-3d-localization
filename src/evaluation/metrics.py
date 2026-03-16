@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 # euclidian error = √((x_true-x_pred)²+(y_true-y_pred)²+(z_true-z_pred)²)
 # errs = np.linalg.norm(preds - true_positions, axis=1)
 
@@ -44,3 +45,24 @@ def threshold_accuracy(errs: np.ndarray, threshold: float) -> float:
 # print(f"  % ≤ {threshold}m : {threshold_accuracy(errs, threshold):.1f}%")
 # ex: "% ≤ 1.0m : 49.3%"
 
+def evaluate_model(y_true, y_pred, model_name="Model"):
+    y_t = np.array(y_true)
+    y_p = np.array(y_pred)
+    
+    errs = np.linalg.norm(y_t - y_p, axis=1)
+    
+    rmse = rmse_3d(errs)
+    pct_1m = threshold_accuracy(errs, 1.0)
+    pct_2m = threshold_accuracy(errs, 2.0)
+    pct_3m = threshold_accuracy(errs, 3.0)
+    
+    describe_stats = pd.Series(errs).describe()
+    
+    print(f"========== {model_name} ==========")
+    print(f"RMSE 3D         : {rmse:.3f} m")
+    print(f"Erreurs < 1m    : {pct_1m:.2f} %")
+    print(f"Erreurs < 2m    : {pct_2m:.2f} %")
+    print(f"Erreurs < 3m    : {pct_3m:.2f} %")
+    print("\n--- 3D Errors Describe ---")
+    print(describe_stats.to_string(float_format="{:.3f}".format))
+    print("==================================\n")
