@@ -9,7 +9,7 @@ Metrics: per-antenna RMSE + overall RMSE, acc@1m/2m/3m
 
 Usage:
     python -m experiments.run_classif_then_regression                  # run all models
-    python -m experiments.run_classif_then_regression ExtraTrees MLP   # run specific models
+    python -m experiments.run_classif_then_regression extratrees mlp   # run specific models
 """
 
 import sys
@@ -19,19 +19,12 @@ from pathlib import Path
 from collections import defaultdict
 from sklearn.model_selection import KFold
 
-from sklearn.ensemble import (
-    ExtraTreesClassifier, ExtraTreesRegressor,
-    RandomForestClassifier, RandomForestRegressor,
-    GradientBoostingClassifier, GradientBoostingRegressor,
-)
-from sklearn.svm import SVC, SVR
-from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.multioutput import MultiOutputRegressor
-
 from src.loaders.loader_advanced_ds_with_deltas import AdvancedDsWithDeltasLoader
 from src.models.classif_then_regressor import ClassifThenRegressor
 from src.config.antennas import ANTENNA_POSITIONS, ANTENNA_NAMES
 from src.evaluation.metrics import rmse_3d, threshold_accuracy
+from src.models.regressors import get_regressor
+from src.models.classifiers import get_classifier
 
 # ─── config ───────────────────────────────────────────────────────────
 
@@ -42,28 +35,17 @@ RANDOM_STATE = 42
 
 
 def get_models():
-    """Returns dict of {name: (classifier, regressor)}."""
+    """
+    Returns dict of {model_name: (classifier, regressor)}.
+    Regressor is wrapped in MultiOutputRegressor when needed (GBR, SVM).
+    """
+    names = ["extratrees", "randomforest", "gradientboosting", "svm_rbf", "mlp"]
     return {
-        "ExtraTrees": (
-            ExtraTreesClassifier(n_estimators=100, random_state=RANDOM_STATE, n_jobs=-1),
-            ExtraTreesRegressor(n_estimators=100, random_state=RANDOM_STATE, n_jobs=-1),
-        ),
-        "RandomForest": (
-            RandomForestClassifier(n_estimators=100, random_state=RANDOM_STATE, n_jobs=-1),
-            RandomForestRegressor(n_estimators=100, random_state=RANDOM_STATE, n_jobs=-1),
-        ),
-        "GradientBoosting": (
-            GradientBoostingClassifier(n_estimators=100, random_state=RANDOM_STATE),
-            MultiOutputRegressor(GradientBoostingRegressor(n_estimators=100, random_state=RANDOM_STATE)),
-        ),
-        "SVM_RBF": (
-            SVC(kernel="rbf", random_state=RANDOM_STATE),
-            MultiOutputRegressor(SVR(kernel="rbf")),
-        ),
-        "MLP": (
-            MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=500, random_state=RANDOM_STATE),
-            MLPRegressor(hidden_layer_sizes=(128, 64), max_iter=500, random_state=RANDOM_STATE),
-        ),
+        name: (
+            get_classifier(name),
+            get_regressor(name, multioutput=True),
+        )
+        for name in names
     }
 
 

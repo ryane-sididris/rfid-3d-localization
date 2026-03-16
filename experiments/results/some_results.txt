@@ -77,7 +77,10 @@ ds_Tx et ds_Tx_Rx pratiquement à égalité
 
 ---
 
-conclusions : l'approche par full trilatération n'améliore par les résultats
+conclusions : l'approche par full trilatération n'améliore par les résultats  : 
+Pour le dataset Tx_Rx 
+prédictions directes : rmse 1.245946
+trilatération        : rsme 1.286785
 
 
 ---
@@ -98,3 +101,66 @@ Hybride multil. x/y + direct z (XGBoost)            1.236  1.063  1.458  12.2%  
 
 résultats sigificativement moins bons qu'avec cross_validation
 prédiction direct avec extratrees reste meilleur
+
+
+---
+
+DIRECT APPROACH, MODEL COMPARISON
+
+=== extratrees - ds_Tx_Rx.csv ===
+Params : n_estimators=100, random_state=42, n_jobs=-1
+             mean       std
+rmse     1.245946  0.016503
+acc_1m  49.625760  1.133499
+acc_2m  93.017491  0.273072
+acc_3m  98.911847  0.169426
+
+=== randomforest - ds_Tx_Rx.csv ===
+Params : n_estimators=100, random_state=42, n_jobs=-1
+             mean       std
+rmse     1.303528  0.034424
+acc_1m  47.857002  1.647620
+acc_2m  91.385095  0.681219
+acc_3m  98.390382  0.195107
+
+=== xgboost - ds_Tx_Rx.csv ===
+Params : n_estimators=400, max_depth=6, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, n_jobs=-1, random_state=0
+             mean       std
+rmse     1.283369  0.024234
+acc_1m  48.877744  0.680727
+acc_2m  92.087965  0.488380
+acc_3m  98.617037  0.432774
+
+=== gradientboosting - ds_Tx_Rx.csv ===
+Params : n_estimators=100, random_state=42
+             mean       std
+rmse     1.373499  0.019882
+acc_1m  41.691256  2.153361
+acc_2m  89.888933  0.401320
+acc_3m  98.140949  0.585360
+
+=== svm_rbf - ds_Tx_Rx.csv ===
+Params : kernel=rbf
+             mean       std
+rmse     1.876277  0.036894
+acc_1m  33.847788  1.518941
+acc_2m  73.566331  1.043413
+acc_3m  89.163823  0.829487
+
+=== mlp - ds_Tx_Rx.csv ===
+Params : hidden_layer_sizes=(128, 64), max_iter=500, random_state=42
+             mean       std
+rmse     1.715721  0.062116
+acc_1m  28.406304  1.210729
+acc_2m  78.531213  0.792742
+acc_3m  95.669936  0.654718
+
+
+Conclusions : 
+                  rmse
+extratrees:       1.245946
+xgboost:          1.283369
+randomforest:     1.303528
+gradientboosting: 1.373499
+mlp:              1.715721
+svm_rbf:          1.876277
