@@ -65,4 +65,4 @@ def evaluate_model(y_true, y_pred, model_name="Model"):
     print(f"Erreurs < 3m    : {pct_3m:.2f} %")
     print("\n--- 3D Errors Describe ---")
     print(describe_stats.to_string(float_format="{:.3f}".format))
-    print("==================================\n")
+    print("=================================\n")
