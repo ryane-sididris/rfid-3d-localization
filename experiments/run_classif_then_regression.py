@@ -14,15 +14,20 @@ Usage:
 
 import sys
 import numpy as np
-import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 from sklearn.model_selection import KFold
 
 from src.loaders.loader_advanced_ds_with_deltas import AdvancedDsWithDeltasLoader
 from src.models.classif_then_regressor import ClassifThenRegressor
-from src.config.antennas import ANTENNA_POSITIONS, ANTENNA_NAMES
-from src.evaluation.metrics import rmse_3d, threshold_accuracy
+from src.config.antennas import ANTENNA_NAMES
+from src.evaluation.delta_regression import (
+    aggregate_mean_std,
+    compute_per_antenna_position_errors,
+    evaluate_delta_regression_fold,
+    get_antenna_positions_array,
+)
+from src.evaluation.metrics import rmse_3d
 from src.models.regressors import get_regressor
 from src.models.classifiers import get_classifier
 
@@ -48,33 +53,6 @@ def get_models():
         for name in names
     }
 
-
-# ─── helpers ──────────────────────────────────────────────────────────
-
-def deltas_to_positions(y_deltas, antenna_positions):
-    """
-    Reconstruct absolute positions from deltas.
-
-    y_deltas: (n_samples, 24) -> [dx_ant0, dy_ant0, dz_ant0, dx_ant1, ...]
-    antenna_positions: (8, 3)
-
-    Returns: (n_samples, 8, 3) -> one position estimate per antenna
-    """
-    n_samples = y_deltas.shape[0]
-    n_antennas = len(antenna_positions)
-    positions = np.zeros((n_samples, n_antennas, 3))
-
-    for i in range(n_antennas):
-        dx = y_deltas[:, i * 3]
-        dy = y_deltas[:, i * 3 + 1]
-        dz = y_deltas[:, i * 3 + 2]
-        positions[:, i, 0] = antenna_positions[i, 0] + dx
-        positions[:, i, 1] = antenna_positions[i, 1] + dy
-        positions[:, i, 2] = antenna_positions[i, 2] + dz
-
-    return positions
-
-
 def evaluate_fold(y_xyz_test, y_deltas_pred, y_deltas_test, antenna_positions_arr, zone_ids_test):
     """
     Compute:
@@ -83,33 +61,19 @@ def evaluate_fold(y_xyz_test, y_deltas_pred, y_deltas_test, antenna_positions_ar
     - aggregated position RMSE + accuracy thresholds
     - per-zone breakdown
     """
-    n_antennas = len(ANTENNA_NAMES)
-    metrics = {}
-
-    # --- per-antenna delta RMSE (pred vs true deltas) ---
-    for i, ant_name in enumerate(ANTENNA_NAMES):
-        delta_pred_i = y_deltas_pred[:, i*3:(i+1)*3]
-        delta_true_i = y_deltas_test[:, i*3:(i+1)*3]
-        delta_errs = np.linalg.norm(delta_pred_i - delta_true_i, axis=1)
-        metrics[f"delta_rmse_{ant_name}"] = rmse_3d(delta_errs)
-
-    # --- reconstructed positions ---
-    pos_per_ant = deltas_to_positions(y_deltas_pred, antenna_positions_arr)
-
-    per_ant_errs = {}
-    for i, ant_name in enumerate(ANTENNA_NAMES):
-        errs = np.linalg.norm(pos_per_ant[:, i, :] - y_xyz_test, axis=1)
-        metrics[f"pos_rmse_{ant_name}"] = rmse_3d(errs)
-        per_ant_errs[ant_name] = errs
-
-    # aggregated: mean of 8 position estimates
-    pos_mean = pos_per_ant.mean(axis=1)  # (n_samples, 3)
-    errs_mean = np.linalg.norm(pos_mean - y_xyz_test, axis=1)
-
-    metrics["rmse_avg"] = rmse_3d(errs_mean)
-    metrics["acc_1m"] = threshold_accuracy(errs_mean, 1)
-    metrics["acc_2m"] = threshold_accuracy(errs_mean, 2)
-    metrics["acc_3m"] = threshold_accuracy(errs_mean, 3)
+    metrics = evaluate_delta_regression_fold(
+        y_xyz_true=y_xyz_test,
+        y_deltas_pred=y_deltas_pred,
+        y_deltas_true=y_deltas_test,
+        antenna_positions=antenna_positions_arr,
+        antenna_names=ANTENNA_NAMES,
+    )
+    per_ant_errs, _, _ = compute_per_antenna_position_errors(
+        y_xyz_true=y_xyz_test,
+        y_deltas_pred=y_deltas_pred,
+        antenna_positions=antenna_positions_arr,
+        antenna_names=ANTENNA_NAMES,
+    )
 
     # per-zone breakdown
     zone_ant_rmse = {}
@@ -123,16 +87,6 @@ def evaluate_fold(y_xyz_test, y_deltas_pred, y_deltas_test, antenna_positions_ar
     metrics["zone_ant_rmse"] = zone_ant_rmse
 
     return metrics
-
-
-def aggregate_mean_std(folds):
-    agg = defaultdict(list)
-    for f in folds:
-        for k, v in f.items():
-            if k != "zone_ant_rmse":
-                agg[k].append(v)
-    return {k: {"mean": np.mean(v), "std": np.std(v)} for k, v in agg.items()}
-
 
 def aggregate_zone_ant_rmse(folds):
     """Average zone x antenna RMSE across folds (zones present in multiple folds)."""
@@ -171,7 +125,7 @@ def run(model_names=None):
     loader = AdvancedDsWithDeltasLoader(voxel_size=VOXEL_SIZE)
     X, y_deltas, y_xyz, zone_ids, df = loader.load(DATA_PATH)
 
-    antenna_positions_arr = np.array([ANTENNA_POSITIONS[a] for a in ANTENNA_NAMES])
+    antenna_positions_arr = get_antenna_positions_array(ANTENNA_NAMES)
 
     n_zones = len(np.unique(zone_ids))
     print(f"Samples: {X.shape[0]}, Features: {X.shape[1]}, Zones: {n_zones}")
@@ -214,7 +168,7 @@ def run(model_names=None):
                 print(f"    Fold {fold_idx+1}: rmse_avg={fold_metrics['rmse_avg']:.3f}  "
                       f"acc@1m={fold_metrics['acc_1m']:.1f}%")
 
-            summary = aggregate_mean_std(folds_results)
+            summary = aggregate_mean_std(folds_results, skip_keys={"zone_ant_rmse"})
 
             print(f"\n    Per-antenna delta RMSE (pred vs true deltas, mean ± std):")
             for ant_name in ANTENNA_NAMES:
@@ -227,7 +181,7 @@ def run(model_names=None):
                 print(f"      {ant_name:>10s}: {summary[key]['mean']:.3f} ± {summary[key]['std']:.3f}")
 
             print(f"\n    Aggregated (mean ± std):")
-            for key in ["rmse_avg", "acc_1m", "acc_2m", "acc_3m"]:
+            for key in ["rmse_avg", "rmse_sklearn", "acc_1m", "acc_2m", "acc_3m"]:
                 print(f"      {key:>10s}: {summary[key]['mean']:.3f} ± {summary[key]['std']:.3f}")
 
             zone_ant = aggregate_zone_ant_rmse(folds_results)
