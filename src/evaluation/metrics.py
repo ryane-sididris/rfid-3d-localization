@@ -32,6 +32,28 @@ def rmse_3d(errs: np.ndarray) -> float:
     """
     return np.sqrt(np.mean(errs ** 2))
 
+
+
+
+def rmse_xyz(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Per-axis average RMSE over x, y, z coordinates.
+
+    Equivalent to sklearn's sqrt(mean_squared_error(y_true, y_pred)) on (n, 3) arrays,
+    which averages the squared errors over all samples AND all 3 axes before taking sqrt.
+
+    This differs from rmse_3d by a factor of 1/√3:
+        rmse_xyz = rmse_3d(errs) / √3
+
+    Args:
+        y_true: True positions, shape (n, 3)
+        y_pred: Predicted positions, shape (n, 3)
+    Returns:
+        Per-axis RMSE (in meters). Smaller than rmse_3d for the same predictions.
+    """
+    diff = np.asarray(y_true) - np.asarray(y_pred)
+    return float(np.sqrt(np.mean(diff ** 2)))
+
+
 def threshold_accuracy(errs: np.ndarray, threshold: float) -> float:
     """Calculate the percentage of predictions with error below a given threshold.
 

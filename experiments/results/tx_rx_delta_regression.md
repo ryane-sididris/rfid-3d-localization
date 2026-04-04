@@ -33,31 +33,29 @@ python -m experiments.run_tx_rx_global_regression extratrees
 
 One regressor is trained per antenna, each with 3 outputs `(dx, dy, dz)`.
 
-### ExtraTrees
+### Model Comparison
 
-| Feature mode | RMSE 3D (m) | RMSE sklearn (m) | acc@1m | acc@2m | acc@3m |
-|-------------|-------------|------------------|--------|--------|--------|
-| All features | **1.245** | **0.719** | 48.9% | **93.3%** | **99.0%** |
-| Per-Tx features | 1.824 | 1.053 | 27.0% | 71.1% | 92.5% |
+| Model | Feature mode | RMSE 3D (m) | RMSE sklearn (m) | acc@1m | acc@2m | acc@3m |
+|-------|--------------|-------------|------------------|--------|--------|--------|
+| ExtraTrees | All features | **1.245** | **0.719** | **48.9%** | **93.3%** | **99.0%** |
+| ExtraTrees | Per-Tx features | 1.824 | 1.053 | 27.0% | 71.1% | 92.5% |
+| RandomForest | All features | 1.306 | 0.754 | 47.6% | 91.6% | 98.4% |
+| RandomForest | Per-Tx features | 1.828 | 1.056 | 26.8% | 71.1% | 92.3% |
+| MLP | All features | 1.479 | 0.854 | 38.7% | 86.8% | 97.2% |
+| MLP | Per-Tx features | **1.796** | **1.037** | **28.2%** | **72.8%** | **92.7%** |
+| XGBoost | All features | 1.278 | 0.738 | 48.4% | 92.1% | 98.8% |
+| XGBoost | Per-Tx features | 1.808 | 1.044 | 28.0% | 71.9% | 92.5% |
 
 Command:
 
 ```bash
-python -m experiments.run_tx_rx_per_antenna_regression extratrees
+python -m experiments.run_tx_rx_per_antenna_regression extratrees randomforest mlp xgboost
 ```
 
 ## Interpretation
 
 - `all_features` is essentially identical to the direct global model, which matches the expected hypothesis.
-- `per_tx_features` is much worse with `extratrees`, so the full Tx/Rx interaction set carries useful information that is lost when slicing too aggressively by Tx.
+- `per_tx_features` is much worse across all tested models, so the full Tx/Rx interaction set carries useful information that is lost when slicing too aggressively by Tx.
+- In `all_features`, `extratrees` remains the best overall, with `xgboost` very close and `randomforest` slightly behind.
+- In `per_tx_features`, all models collapse to a narrower band; `mlp` is the best of the tested models on both RMSE and threshold accuracies.
 - With tree-based models, the reconstructed RMSE is almost identical for every antenna, which suggests the model learns a common position estimate and mostly carries antenna-dependent offsets through the delta targets.
-
-## Models To Prioritize Next For Per-Antenna
-
-Suggested order:
-1. `extratrees`: fastest strong baseline, already validated.
-2. `randomforest`: close family, useful sanity check against ExtraTrees.
-3. `xgboost`: stronger boosting baseline than plain sklearn GB in many tabular cases.
-4. `mlp`: worth testing because it may exploit feature interactions differently.
-5. `gradientboosting`: useful reference, but usually slower/weaker than ExtraTrees/XGBoost here.
-6. `svm_rbf`: likely expensive on 4411 samples; keep it as a targeted benchmark, not the first sweep.
