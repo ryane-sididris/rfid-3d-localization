@@ -1,0 +1,88 @@
+(venv-metal) melchior@MacBook-Pro-de-Melchior rfid-repo % source /Users/melchior/venv-metal/bin/activate && python -m experiments.run_keras_position all
+Loading dataset: ds_advanced_17Feb26.csv
+Samples=3814, Features=648
+
+============================================================
+  Model: keras_trilat_non_strict
+============================================================
+[CV] Fold 1/5 - training...
+2026-03-22 15:50:32.404328: I metal_plugin/src/device/metal_device.cc:1154] Metal device set to: Apple M3
+2026-03-22 15:50:32.404353: I metal_plugin/src/device/metal_device.cc:296] systemMemory: 24.00 GB
+2026-03-22 15:50:32.404361: I metal_plugin/src/device/metal_device.cc:313] maxCacheSize: 8.88 GB
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1774191032.404373 3470048 pluggable_device_factory.cc:305] Could not identify NUMA node of platform GPU ID 0, defaulting to 0. Your kernel may not have been built with NUMA support.
+I0000 00:00:1774191032.404392 3470048 pluggable_device_factory.cc:271] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 0 MB memory) -> physical PluggableDevice (device: 0, name: METAL, pci bus id: <undefined>)
+2026-03-22 15:50:32.895229: I tensorflow/core/grappler/optimizers/custom_graph_optimizer_registry.cc:117] Plugin optimizer for device_type GPU is enabled.
+[CV] Fold 1/5 done in 23.58s | rmse=1.3745, acc_1m=43.6%, acc_2m=89.6%, acc_3m=97.4%
+[CV] Fold 2/5 - training...
+[CV] Fold 2/5 done in 20.60s | rmse=1.3925, acc_1m=37.9%, acc_2m=89.1%, acc_3m=98.0%
+[CV] Fold 3/5 - training...
+[CV] Fold 3/5 done in 21.21s | rmse=1.4151, acc_1m=40.5%, acc_2m=87.8%, acc_3m=97.5%
+[CV] Fold 4/5 - training...
+[CV] Fold 4/5 done in 22.30s | rmse=1.4050, acc_1m=43.5%, acc_2m=90.3%, acc_3m=97.2%
+[CV] Fold 5/5 - training...
+[CV] Fold 5/5 done in 20.62s | rmse=1.4444, acc_1m=41.7%, acc_2m=88.3%, acc_3m=97.1%
+[CV] Completed 5 folds in 108.32s
+
+--- keras_trilat_non_strict (ds_advanced_17Feb26.csv) ---
+               mean       std
+rmse       1.406310  0.023369
+rmse_xyz   0.811933  0.013492
+acc_1m    41.452617  2.136297
+acc_2m    89.040189  0.893668
+acc_3m    97.456648  0.317541
+
+============================================================
+  Model: keras_trilat_strict
+============================================================
+[CV] Fold 1/5 - training...
+[CV] Fold 1/5 done in 21.26s | rmse=1.4640, acc_1m=38.9%, acc_2m=88.3%, acc_3m=96.6%
+[CV] Fold 2/5 - training...
+[CV] Fold 2/5 done in 27.23s | rmse=1.4064, acc_1m=37.4%, acc_2m=87.5%, acc_3m=98.2%
+[CV] Fold 3/5 - training...
+[CV] Fold 3/5 done in 26.86s | rmse=1.3855, acc_1m=42.7%, acc_2m=88.2%, acc_3m=97.6%
+[CV] Fold 4/5 - training...
+[CV] Fold 4/5 done in 22.95s | rmse=1.4088, acc_1m=39.8%, acc_2m=89.6%, acc_3m=97.4%
+[CV] Fold 5/5 - training...
+[CV] Fold 5/5 done in 18.23s | rmse=1.4826, acc_1m=35.0%, acc_2m=87.9%, acc_3m=97.2%
+[CV] Completed 5 folds in 116.54s
+
+--- keras_trilat_strict (ds_advanced_17Feb26.csv) ---
+               mean       std
+rmse       1.429456  0.037166
+rmse_xyz   0.825297  0.021458
+acc_1m    38.777206  2.559372
+acc_2m    88.332353  0.710001
+acc_3m    97.404258  0.513878
+
+============================================================
+  Model: keras_xyz_nl
+============================================================
+[CV] Fold 1/5 - training...
+[CV] Fold 1/5 done in 234.12s | rmse=1.5292, acc_1m=44.6%, acc_2m=88.6%, acc_3m=97.2%
+[CV] Fold 2/5 - training...
+[CV] Fold 2/5 done in 250.96s | rmse=1.6116, acc_1m=38.0%, acc_2m=84.7%, acc_3m=94.6%
+[CV] Fold 3/5 - training...
+[CV] Fold 3/5 done in 183.29s | rmse=1.5497, acc_1m=36.2%, acc_2m=84.0%, acc_3m=96.3%
+[CV] Fold 4/5 - training...
+[CV] Fold 4/5 done in 334.07s | rmse=3.1092, acc_1m=38.3%, acc_2m=85.3%, acc_3m=96.6%
+[CV] Fold 5/5 - training...
+[CV] Fold 5/5 done in 267.40s | rmse=1.4715, acc_1m=38.1%, acc_2m=86.5%, acc_3m=97.2%
+[CV] Completed 5 folds in 1269.87s
+
+--- keras_xyz_nl (ds_advanced_17Feb26.csv) ---
+               mean       std
+rmse       1.854244  0.629074
+rmse_xyz   1.070548  0.363196
+acc_1m    39.013908  2.874723
+acc_2m    85.815592  1.613079
+acc_3m    96.408190  0.961045
+
+============================================================
+  COMPARISON
+============================================================
+                         rmse  rmse_xyz  acc_1m  acc_2m  acc_3m
+keras_trilat_non_strict 1.406     0.812  41.453  89.040  97.457
+keras_trilat_strict     1.429     0.825  38.777  88.332  97.404
+keras_xyz_nl            1.854     1.071  39.014  85.816  96.408
+(venv-metal) melchior@MacBook-Pro-de-Melchior rfid-repo %   
