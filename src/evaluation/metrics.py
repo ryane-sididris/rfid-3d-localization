@@ -54,6 +54,26 @@ def rmse_xyz(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.sqrt(np.mean(diff ** 2)))
 
 
+def xy_errors(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+    """Euclidean errors in the XY plane."""
+    y_true_xy = np.asarray(y_true)[:, :2]
+    y_pred_xy = np.asarray(y_pred)[:, :2]
+    return np.linalg.norm(y_true_xy - y_pred_xy, axis=1)
+
+
+def rmse_xy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Root mean squared Euclidean error in the XY plane."""
+    errs_xy = xy_errors(y_true, y_pred)
+    return float(np.sqrt(np.mean(errs_xy ** 2)))
+
+
+def rmse_z(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Root mean squared error on the Z axis only."""
+    z_true = np.asarray(y_true)[:, 2]
+    z_pred = np.asarray(y_pred)[:, 2]
+    return float(np.sqrt(np.mean((z_true - z_pred) ** 2)))
+
+
 def threshold_accuracy(errs: np.ndarray, threshold: float) -> float:
     """Calculate the percentage of predictions with error below a given threshold.
 
