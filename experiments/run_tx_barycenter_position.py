@@ -4,6 +4,7 @@ Tx-only barycenter heuristics on ds_power_tx_rx_freq.csv.
 Usage:
     uv run python -m experiments.run_tx_barycenter_position
     uv run python -m experiments.run_tx_barycenter_position --score-mode raw_sum --top-k 8 --z-model linear
+    uv run python -m experiments.run_tx_barycenter_position --score-mode raw_median --top-k 8 --z-model linear
     uv run python -m experiments.run_tx_barycenter_position --physical-sweep
     uv run python -m experiments.run_tx_barycenter_position --all
 """
@@ -16,17 +17,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.evaluation.metrics import rmse_xy, rmse_xyz, rmse_z, threshold_accuracy, xy_errors
+from src.config.antennas import ANTENNA_POSITIONS
+from src.evaluation.metrics import mae_xy, rmse_xy, rmse_xy_peraxis, rmse_xyz, rmse_z, threshold_accuracy, xy_errors
 from src.loaders.loader_power_tx_rx_freq_semantic import PowerTxRxFreqSemanticLoader
 from src.models.tx_barycenter_heuristic import TxBarycenterHeuristic
 from src.validation.cross_validation import cross_validate
 
 
 DATA_PATH = Path("data") / "ds_power_tx_rx_freq.csv"
+SPATIAL_MARGIN = 1.5  # metres beyond antenna bounding box, same as Christophe's notebook
 K_FOLDS = 5
 RANDOM_STATE = 42
-CLASSIC_SCORE_MODES = ["raw_sum", "balanced_per_power"]
-RSSI_MAX_SCORE_MODES = ["rssi_max", "rssi_max_power_corrected"]
+CLASSIC_SCORE_MODES = ["raw_sum", "raw_median", "balanced_per_power"]
+RSSI_MAX_SCORE_MODES = ["rssi_max", "rssi_max_power_corrected", "rssi_max_div_power_dbm", "rssi_max_div_power_linear"]
 WEIGHT_EXPONENTS = [1.0, 0.5, 1.0 / 3.0, 0.25]
 
 
@@ -42,7 +45,18 @@ def parse_args(argv):
     parser.add_argument("--weight-exponent", type=float, default=1.0)
     parser.add_argument("--physical-sweep", action="store_true")
     parser.add_argument("--all", action="store_true")
+    parser.add_argument("--spatial-filter", action="store_true",
+                        help="Restrict to samples within SPATIAL_MARGIN of antenna bounding box")
     return parser.parse_args(argv)
+
+
+def spatial_filter_mask(y_xyz: np.ndarray, margin: float = SPATIAL_MARGIN) -> np.ndarray:
+    """Return boolean mask keeping samples within margin of the antenna bounding box."""
+    positions = np.array([v[:2] for v in ANTENNA_POSITIONS.values()])
+    x_min, y_min = positions.min(axis=0) - margin
+    x_max, y_max = positions.max(axis=0) + margin
+    x, y = y_xyz[:, 0], y_xyz[:, 1]
+    return (x >= x_min) & (x <= x_max) & (y >= y_min) & (y <= y_max)
 
 
 def aggregate_mean_std(folds):
@@ -60,6 +74,8 @@ def evaluate_position(y_true, y_pred, _):
     xy_errs = xy_errors(y_true, y_pred)
     return {
         "acc_xy@2m": threshold_accuracy(xy_errs, 2.0),
+        "mae_xy": mae_xy(y_true, y_pred),
+        "rmse_xy_peraxis": rmse_xy_peraxis(y_true, y_pred),
         "rmse_xy": rmse_xy(y_true, y_pred),
         "rmse_z": rmse_z(y_true, y_pred),
         "rmse_xyz": rmse_xyz(y_true, y_pred),
@@ -132,6 +148,8 @@ def run_one_config(
         "weight_exponent": f"{weight_exponent:.3f}",
         "z_model": z_model,
         "acc_xy@2m": f"{summary['acc_xy@2m']['mean']:.2f} +/- {summary['acc_xy@2m']['std']:.2f}",
+        "mae_xy": f"{summary['mae_xy']['mean']:.3f} +/- {summary['mae_xy']['std']:.3f}",
+        "rmse_xy_peraxis": f"{summary['rmse_xy_peraxis']['mean']:.3f} +/- {summary['rmse_xy_peraxis']['std']:.3f}",
         "rmse_xy": f"{summary['rmse_xy']['mean']:.3f} +/- {summary['rmse_xy']['std']:.3f}",
         "rmse_z": f"{summary['rmse_z']['mean']:.3f} +/- {summary['rmse_z']['std']:.3f}",
         "rmse_xyz": f"{summary['rmse_xyz']['mean']:.3f} +/- {summary['rmse_xyz']['std']:.3f}",
@@ -152,6 +170,12 @@ def main(argv=None):
     print(f"Tx names:              {dataset.tx_names}")
     print(f"Rx names:              {dataset.rx_names}")
 
+    X, y = dataset.values_by_power_tx_rx_freq, dataset.y_xyz
+    if args.spatial_filter:
+        mask = spatial_filter_mask(y)
+        X, y = X[mask], y[mask]
+        print(f"Spatial filter:        {mask.sum()}/{len(mask)} samples kept")
+
     configs = build_experiment_configs(args)
     rows = []
 
@@ -161,8 +185,8 @@ def main(argv=None):
             f"weight_exponent={weight_exponent:.3f}, z_model={z_model}"
         )
         row = run_one_config(
-            values_by_power_tx_rx_freq=dataset.values_by_power_tx_rx_freq,
-            y_xyz=dataset.y_xyz,
+            values_by_power_tx_rx_freq=X,
+            y_xyz=y,
             tx_names=dataset.tx_names,
             powers=dataset.powers,
             score_mode=score_mode,

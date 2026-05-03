@@ -11,7 +11,7 @@ import tensorflow as tf
 from collections import defaultdict
 from pathlib import Path
 
-from src.evaluation.metrics import rmse_3d, rmse_xyz, threshold_accuracy
+from src.evaluation.metrics import mae_3d, rmse_3d, rmse_xyz, threshold_accuracy
 from src.loaders.loader_power_tx_rx_freq_tensor import PowerTxRxFreqTensorLoader
 from src.models.keras_tensor_models import build_freq_conv_xyz, default_callbacks_freq_xyz
 from src.validation.cross_validation import cross_validate
@@ -32,6 +32,7 @@ def aggregate_mean_std(folds):
 def evaluate_position(y_true, y_pred, _):
     errs = np.linalg.norm(y_true - y_pred, axis=1)
     return {
+        "dist_mae": mae_3d(errs),
         "rmse": rmse_3d(errs),
         "rmse_xyz": rmse_xyz(y_true, y_pred),
         "acc_1m": threshold_accuracy(errs, 1),

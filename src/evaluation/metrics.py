@@ -1,7 +1,18 @@
 import numpy as np
 import pandas as pd
-# euclidian error = √((x_true-x_pred)²+(y_true-y_pred)²+(z_true-z_pred)²)
-# errs = np.linalg.norm(preds - true_positions, axis=1)
+
+# XY error metrics — three different definitions, not directly comparable:
+#
+#   mae_xy          = mean( √(dx²+dy²) )          → mean Euclidean XY distance
+#                                                    Loussert: ds_bary['err'].describe()['mean']
+#
+#   rmse_xy         = √( mean(dx²+dy²) )           → RMSE of Euclidean XY distance
+#                                                    Always ≥ mae_xy (Jensen's inequality)
+#
+#   rmse_xy_peraxis = √( mean(dx²+dy²) / 2 )       → per-axis RMSE, averaged over x and y
+#                   = √( sklearn.mean_squared_error(y_true[:,:2], y_pred[:,:2]) )
+#                                                    Loussert: np.sqrt(mean_squared_error(...))
+#                                                    Always ≤ rmse_xy by factor √2
 
 def mae_3d(errs: np.ndarray) -> float:
     """
@@ -65,6 +76,18 @@ def rmse_xy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Root mean squared Euclidean error in the XY plane."""
     errs_xy = xy_errors(y_true, y_pred)
     return float(np.sqrt(np.mean(errs_xy ** 2)))
+
+
+def mae_xy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Mean Euclidean error in the XY plane (same as describe().mean())."""
+    return float(np.mean(xy_errors(y_true, y_pred)))
+
+
+def rmse_xy_peraxis(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Per-axis RMSE in the XY plane — matches sklearn mean_squared_error on (n,2) arrays.
+    Equivalent to sqrt(mean(dx² + dy²) / 2). Used by Christophe as 'rmse'."""
+    diff = np.asarray(y_true)[:, :2] - np.asarray(y_pred)[:, :2]
+    return float(np.sqrt(np.mean(diff ** 2)))
 
 
 def rmse_z(y_true: np.ndarray, y_pred: np.ndarray) -> float:

@@ -44,7 +44,10 @@ class TxBarycenterHeuristic:
 
     def _build_tx_scores(self, values_by_power_tx_rx_freq):
         if self.score_mode == "raw_sum":
-            return values_by_power_tx_rx_freq.sum(axis=(1, 3, 4))
+            return self._raw_sum_scores(values_by_power_tx_rx_freq)
+
+        if self.score_mode == "raw_median":
+            return self._raw_median_scores(values_by_power_tx_rx_freq)
 
         if self.score_mode == "balanced_per_power":
             tx_energy_by_power = values_by_power_tx_rx_freq.sum(axis=(3, 4))
@@ -62,7 +65,28 @@ class TxBarycenterHeuristic:
             corrected_rssi = rssi_max_by_power_and_tx / power_relative_factors[None, :, None]
             return corrected_rssi.mean(axis=1)
 
+        if self.score_mode == "rssi_max_div_power_dbm":
+            # weight = (rssi_linear / P_dBm)^exponent — Christophe's notebook cell 209
+            rssi_max_by_power_and_tx = values_by_power_tx_rx_freq.max(axis=(3, 4))
+            power_dbm = np.array([float(p) for p in self.powers], dtype=np.float32)
+            corrected_rssi = rssi_max_by_power_and_tx / power_dbm[None, :, None]
+            return corrected_rssi.sum(axis=1)
+
+        if self.score_mode == "rssi_max_div_power_linear":
+            # weight = (rssi_linear / P_linear)^exponent, P_linear = 10^(P_dBm/10)
+            rssi_max_by_power_and_tx = values_by_power_tx_rx_freq.max(axis=(3, 4))
+            power_dbm = np.array([float(p) for p in self.powers], dtype=np.float32)
+            power_linear = 10 ** (power_dbm / 10)
+            corrected_rssi = rssi_max_by_power_and_tx / power_linear[None, :, None]
+            return corrected_rssi.sum(axis=1)
+
         raise ValueError(f"Unknown score_mode: {self.score_mode}")
+
+    def _raw_sum_scores(self, values_by_power_tx_rx_freq):
+        return values_by_power_tx_rx_freq.sum(axis=(1, 3, 4))
+
+    def _raw_median_scores(self, values_by_power_tx_rx_freq):
+        return np.median(values_by_power_tx_rx_freq, axis=(1, 3, 4))
 
     def _predict_xy_from_scores(self, tx_scores):
         xy_pred = np.zeros((len(tx_scores), 2), dtype=np.float32)
