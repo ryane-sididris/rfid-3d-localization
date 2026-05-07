@@ -105,7 +105,7 @@ Interprétation :
 
 #### Variante `rssi_max`
 
-Cette variante colle davantage à l’idée “prendre le RSSI max par Tx”.
+Cette variante l'inspire de l’idée “prendre le RSSI max par Tx”.
 
 Pour chaque `Tx`, on cherche la plus grande valeur observée pour ce `Tx`, peu importe :
 

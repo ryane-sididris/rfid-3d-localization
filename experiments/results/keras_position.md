@@ -1,5 +1,6 @@
 # Modèles Keras — Régression de position directe
 
+Experimentations rapides de modèles de réseaux neuronaux Keras
 ## Approche
 
 Trois architectures deep learning entraînées sur les 648 features RSSI pour prédire directement `(x, y, z)` :
