@@ -36,7 +36,7 @@ La seule différence est le traitement d'un couple de features opposées :
 
 ### Variante A: avec fusion
 
-Fichier : `experiments/run_ratio_position_solver.py`
+Fichier : `experiments/run_ratio_position_solver_linear.py`
 
 Pour une paire \((i,j)\), on lit :
 
@@ -62,7 +62,7 @@ Puis on impose :
 
 ### Variante B: sans fusion
 
-Fichier : `experiments/run_ratio_position_solver_no_fusion.py`
+Fichier : `experiments/run_ratio_position_solver_no_fusion_linear.py`
 
 Chaque feature devient sa propre contrainte dirigée.
 
