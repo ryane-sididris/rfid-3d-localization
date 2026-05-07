@@ -11,3 +11,4 @@ Le notebook `stacking_manuel.ipynb` contient l'implémentation d'un stacking de 
 
 Le notebook `trilateration_et_regressorchains.ipynb` contient l'implémentation manuelle de méthodes de trilatération (3D par Gauss-Newton) et de chaîne de régression (les prédictions des cibles précédentes sont utilisées en variables d'entrée).
 
+Le notebook `Expérimentation NN, barycentre, plus proche voisin et features fréquentielles.ipynb` explore des méthodes de localisation allant des approches géométriques classiques aux réseaux de neurones profonds. Il compare les performances du barycentre pondéré (RSSI-weighted) et du plus proche voisin avec des modèles de régression (Multi-layer Perceptron, ExtraTrees, XGBoost) entraînés sur des signatures fréquentielles pivotées. Le notebook inclut une analyse de corrélation mettant en évidence le phénomène de fading sélectif, prouvant la structure logique du signal RFID face aux interférences multi-trajets.
