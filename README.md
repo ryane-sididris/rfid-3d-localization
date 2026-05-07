@@ -63,13 +63,13 @@ Summary: [`experiments/results/keras_position.md`](experiments/results/keras_pos
 
 This tries a few Keras models that predict `(x, y, z)` directly.
 
-### Keras frequency tensor position
+### Keras convolutional network
 
 Script: [`experiments/run_keras_freq_position.py`](experiments/run_keras_freq_position.py)
 
 Summary: [`experiments/results/keras_freq_position.md`](experiments/results/keras_freq_position.md)
 
-This reshapes the frequency data into many small paths, runs the same 1D conv encoder on each path, then combines everything to predict `(x, y, z)`.
+This reshapes the frequency data into many paths, runs the same Conv1D on each path, then combines everything to predict `(x, y, z)`.
 
 ### Ratio position solver
 
