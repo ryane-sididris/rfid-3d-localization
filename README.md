@@ -12,7 +12,7 @@
 
 - `ds_elemen.csv` : dataset auxiliaire utilisé pour certaines analyses et expérimentations.
 
-- `Notebook 1.ipynb` : notebook principal contenant preprocessing, entraînement et évaluation des modèles.
+- `Exploration_général.ipynb` : notebook principal contenant preprocessing, entraînement et évaluation des modèles.
 
 - `RX.ipynb` : expérimentations réalisées uniquement avec les données RX.
 
