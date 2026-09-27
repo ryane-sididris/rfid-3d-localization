@@ -1,3 +1,25 @@
+# Localisation 3D de tags RFID par machine learning
+
+Projet réalisé en équipe à l'ESIEE Paris, en partenariat avec Acceliot (2026).
+
+**Objectif :** estimer la position 3D de tags RFID à partir des signaux (RSSI) reçus par 8 antennes fixées en hauteur, malgré les réflexions du signal (multipath).
+
+## Résultats principaux
+
+Validation croisée à 5 folds sur le jeu de données `ds_Tx_Rx` :
+
+| Modèle | Erreur 3D moyenne | ≤ 1 m | ≤ 2 m | ≤ 3 m |
+|---|---|---|---|---|
+| **ExtraTrees (MultiOutput)** | **1,24 m** | **50,1 %** | **93,4 %** | **99,0 %** |
+| Stacking (ET, XGBoost, KNN) | 1,22 m | 51,7 % | 93,1 % | 98,9 % |
+| Trilatération + chaîne ExtraTrees | 1,26 m | 49,3 % | 92,8 % | 99,0 % |
+| Random Forest | 1,30 m | 47,7 % | 91,4 % | 98,5 % |
+| XGBoost | 1,39 m | 42,7 % | 88,9 % | 98,0 % |
+
+Détail des comparaisons : notebook `comparaison_individuelle.ipynb` (branche `Exploration`). Les autres expériences (réseaux de neurones, zonage, heuristiques…) sont décrites ci-dessous.
+
+---
+
 Explanation video:
 https://drive.google.com/drive/folders/1EUJafUOZl9oDjFGUfmzG_RWv7Po1pbLr?usp=sharing
 
